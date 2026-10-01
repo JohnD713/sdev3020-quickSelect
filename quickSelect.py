@@ -4,7 +4,7 @@ import psutil
 #--------------------------------------------------------------------------------
 
 def create_unique_random_numbers():
-    numbers = random.sample(range(0, 10000000), 1000000)
+    numbers = random.sample(range(0, 10000000), 10)
     return numbers
 
 def linearSearch(set, goal):
@@ -24,14 +24,44 @@ def binarySearch(set, goal):
             right = mid - 1
     return
 
-def quickSearch(set, goal):
-    return
+def quickSelect(set, left, right, goal):
+    if (goal > 0 and goal <= right - left + 1):
+        # partition the set
+        index = partition(set, left, right)
+        
+        # if our index position is the goal, return the number at that index
+        if index - left == goal - 1:
+            return set[index]
+        
+        # if index(number of items in partition) is less than the goal, recur the left
+        if index - left > goal - 1:
+            return quickSelect(set, left, index - 1, goal)
+            
+        # otherwise recur the right partition
+        return quickSelect(set, index + 1, right, goal - index + left - 1)
+
+def partition(set, left, right):
+    # set pivot to rightmost value
+    pivot = set[right]
+    # set the iterator to leftmost position
+    iterator = left
+    
+    for j in range(left, right):
+        # is current value less than the pivot?
+        if set[j] <= pivot:
+            # move behind pivot
+            set[iterator], set[j] = set[j], set[iterator]
+            # move up the iterator
+            iterator += 1
+    # move the pivot to current position
+    set[iterator], set[right] = set[right], set[iterator]
+    
+    return iterator
 #--------------------------------------------------------------------------------
 if __name__ == "__main__":
     unsorted = create_unique_random_numbers()
     sorted = unsorted
-    sorted.sort()
-    
+    sorted.sort()  
 
     mBefore = psutil.Process().memory_info().rss / (1024 * 1024)
     cpuBefore = psutil.Process().cpu_times()
@@ -50,7 +80,7 @@ if __name__ == "__main__":
 
 #-----------------------------------------------------------------------------------------------------
 
-    quickSearch(unsorted, 3)
+    quickSelect(unsorted, 3, 0, len(unsorted) - 1)
 
     mAfterQuick = psutil.Process().memory_info().rss / (1024 * 1024)
     cpuAfterQuick = psutil.Process().cpu_times()
@@ -73,7 +103,7 @@ if __name__ == "__main__":
     print(f"CPU After: User: {cpuAfterBinary[0]} | System: {cpuAfterBinary[1]}")
 
     print("--Quick--")
-    print(f"Time: {timeit.timeit('quickSearch(unsorted, 3)', globals=globals(), number=1)}")
+    print(f"Time: {timeit.timeit('quickSelect(unsorted, 0, len(unsorted) - 1, 3)', globals=globals(), number=1)}")
     print(f"Memory before: {mBefore} MB")
     print(f"Memory after: {mAfterQuick} MB")
     print(f"CPU Before: User: {cpuBefore[0]} | System: {cpuBefore[1]}")
